@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AutoSupport AI</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f5f5f3;
+      --bg-success: #eaf3de;
+      --bg-danger: #fcebeb;
+      --bg-warning: #faeeda;
+      --bg-purple: #eeedfe;
+      --text-primary: #1a1a1a;
+      --text-secondary: #666;
+      --text-tertiary: #999;
+      --text-success: #3b6d11;
+      --text-danger: #a32d2d;
+      --text-warning: #854f0b;
+      --text-purple: #534ab7;
+      --border: rgba(0,0,0,0.12);
+      --border-md: rgba(0,0,0,0.2);
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --font: system-ui, -apple-system, sans-serif;
+      --font-mono: ui-monospace, monospace;
+    }
+    body { font-family: var(--font); font-size: 14px; color: var(--text-primary); background: var(--bg-secondary); min-height: 100vh; }
+    .app { padding: 1.5rem; max-width: 900px; margin: 0 auto; }
+    .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo-icon { width: 32px; height: 32px; background: #534ab7; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    .logo-icon svg { width: 18px; height: 18px; fill: white; }
+    .logo-text { font-size: 17px; font-weight: 500; }
+    .badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; background: var(--bg-success); color: var(--text-success); }
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+    .metric { background: var(--bg-primary); border-radius: var(--radius-md); padding: 14px; border: 0.5px solid var(--border); }
+    .metric-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+    .metric-value { font-size: 22px; font-weight: 500; }
+    .metric-sub { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
+    .section-title { font-size: 14px; font-weight: 500; margin-bottom: 10px; color: var(--text-secondary); }
+    .ticket-list { display: flex; flex-direction: column; gap: 10px; }
+    .ticket { background: var(--bg-primary); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; }
+    .ticket-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; gap: 12px; }
+    .ticket-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 5px; }
+    .ticket-id { font-size: 12px; color: var(--text-tertiary); font-family: var(--font-mono); }
+    .priority { font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
+    .p-high { background: var(--bg-danger); color: var(--text-danger); }
+    .p-medium { background: var(--bg-warning); color: var(--text-warning); }
+    .p-low { background: var(--bg-success); color: var(--text-success); }
+    .ticket-subject { font-size: 14px; font-weight: 500; }
+    .ticket-customer { font-size: 12px; color: var(--text-secondary); margin-top: 3px; }
+    .ticket-body { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 10px; }
+    .ai-box { background: var(--bg-secondary); border-radius: var(--radius-md); padding: 12px; margin-bottom: 10px; border-left: 2px solid #534ab7; }
+    .ai-label { font-size: 11px; color: #534ab7; font-weight: 500; margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
+    .ai-response { font-size: 13px; line-height: 1.6; white-space: pre-wrap; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn { font-size: 12px; padding: 6px 14px; border-radius: 6px; border: 0.5px solid var(--border-md); background: transparent; cursor: pointer; font-family: var(--font); color: var(--text-primary); }
+    .btn:hover { background: var(--bg-secondary); }
+    .btn-primary { background: #534ab7; color: white; border-color: #534ab7; }
+    .btn-primary:hover { background: #3c3489; }
+    .btn-danger { color: var(--text-danger); border-color: rgba(163,45,45,0.15); }
+    .btn-danger:hover { background: var(--bg-danger); }
+    .btn-success { color: var(--text-success); border-color: rgba(59,109,17,0.15); }
+    .btn-success:hover { background: var(--bg-success); }
+    .status-chip { font-size: 11px; padding: 3px 10px; border-radius: 20px; }
+    .s-pending { background: var(--bg-secondary); color: var(--text-secondary); }
+    .s-resolved { background: var(--bg-success); color: var(--text-success); }
+    .s-escalated { background: var(--bg-danger); color: var(--text-danger); }
+    .s-generating { background: var(--bg-purple); color: var(--text-purple); }
+    .spinner { display: inline-block; width: 10px; height: 10px; border: 2px solid #afa9ec; border-top-color: #534ab7; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .edit-area { width: 100%; min-height: 80px; font-size: 13px; font-family: var(--font); border: 0.5px solid var(--border-md); border-radius: 6px; padding: 8px; background: var(--bg-primary); color: var(--text-primary); resize: vertical; line-height: 1.5; }
+    .divider { height: 0.5px; background: var(--border); margin: 10px 0; }
+    .toast { position: fixed; bottom: 20px; right: 20px; background: #534ab7; color: white; padding: 10px 16px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; }
+    .toast.show { opacity: 1; }
+    @media (max-width: 600px) {
+      .metrics { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 10H6V10h12v2zm0-3H6V7h12v2z"/></svg>
+      </div>
+      <span class="logo-text">AutoSupport AI</span>
+    </div>
+    <span class="badge">Live</span>
+  </div>
+
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">Auto-resolved</div><div class="metric-value" id="m-resolved">0</div><div class="metric-sub">of <span id="m-total">0</span> tickets</div></div>
+    <div class="metric"><div class="metric-label">Resolution rate</div><div class="metric-value" id="m-rate">0%</div><div class="metric-sub">target: 40–70%</div></div>
+    <div class="metric"><div class="metric-label">Avg. response</div><div class="metric-value" id="m-time">—</div><div class="metric-sub">vs hrs manually</div></div>
+    <div class="metric"><div class="metric-label">Escalated</div><div class="metric-value" id="m-esc">0</div><div class="metric-sub">need human review</div></div>
+  </div>
+
+  <div class="section-title">Incoming Tickets</div>
+  <div class="ticket-list" id="ticket-list"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const ANTHROPIC_API_KEY = 'YOUR_API_KEY_HERE'; // Replace with your key
+
+const TICKETS = [
+  { id: "TK-1041", subject: "Cannot reset my password", body: "Hi, I've been trying to reset my password for the last hour using the 'Forgot Password' link but I'm not receiving the reset email. My account email is john.doe@company.com. Please help!", customer: "John Doe", priority: "high" },
+  { id: "TK-1042", subject: "Request for invoice copy – March 2026", body: "Hello, could you please send me a copy of my invoice for March 2026? I need it for our accounting team. Account ID: ACC-8821.", customer: "Sarah Lin", priority: "low" },
+  { id: "TK-1043", subject: "API rate limit errors in production", body: "We're seeing 429 errors from your API starting around 2AM UTC today. Our plan should allow 1000 req/min but we're hitting limits at ~400. This is impacting our production environment urgently.", customer: "Dev Team @ Acme Corp", priority: "high" },
+  { id: "TK-1044", subject: "How do I add a team member to my workspace?", body: "Hi! New to the platform and trying to invite a colleague. I went to Settings > Team but I don't see an 'Invite' button. Am I missing something? Running on the Business plan.", customer: "Priya Sharma", priority: "medium" },
+  { id: "TK-1045", subject: "Cancellation request", body: "I'd like to cancel my subscription effective immediately. The product doesn't fit our current needs. Please confirm cancellation and let me know about the refund policy for unused days.", customer: "Marcus T.", priority: "medium" }
+];
+
+const KB = `AutoSupport AI Knowledge Base:
+- Password reset emails are sent within 2 minutes. Check spam. If not received, use admin portal or contact support@autosupport.ai.
+- Invoices are available in Settings > Billing > Invoice History. PDF download available. Can also be emailed on request within 1 business day.
+- API rate limits: Starter=100/min, Business=500/min, Enterprise=2000/min. Rate limit resets every 60s. 429 errors can be checked via dashboard. Contact sales to upgrade.
+- To invite team members: Settings > Team > Members tab > click 'Invite Member' button (only visible to admins). Business plan allows up to 25 members.
+- Cancellations are processed immediately. Refunds are prorated for unused days on monthly plans. Annual plans are non-refundable after 14 days. Confirmation sent via email within 1 hour.
+- SLA: Urgent/High tickets: 15 min response. Medium: 2 hours. Low: 24 hours.
+- Always be empathetic, professional, and concise. End with confirmation and next steps.`;
+
+let stats = { resolved: 0, escalated: 0, total: TICKETS.length, times: [] };
+let ticketStates = {};
+
+function updateMetrics() {
+  document.getElementById('m-resolved').textContent = stats.resolved;
+  document.getElementById('m-total').textContent = stats.total;
+  const rate = stats.total > 0 ? Math.round((stats.resolved / stats.total) * 100) : 0;
+  document.getElementById('m-rate').textContent = rate + '%';
+  document.getElementById('m-esc').textContent = stats.escalated;
+  if (stats.times.length > 0) {
+    const avg = Math.round(stats.times.reduce((a,b) => a+b, 0) / stats.times.length);
+    document.getElementById('m-time').textContent = avg + 's';
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function renderTicket(ticket) {
+  const state = ticketStates[ticket.id] || { status: 'pending', aiResponse: null, editing: false };
+  const statusLabel = { pending: 'Pending', resolved: 'Resolved', escalated: 'Escalated', generating: 'Generating...' };
+  const statusClass = { pending: 's-pending', resolved: 's-resolved', escalated: 's-escalated', generating: 's-generating' };
+  const priorityClass = { high: 'p-high', medium: 'p-medium', low: 'p-low' };
+
+  let aiSection = '';
+  if (state.status === 'generating') {
+    aiSection = `<div class="ai-box"><div class="ai-label"><span class="spinner"></span> Generating response...</div></div>`;
+  } else if (state.aiResponse && state.status !== 'resolved' && state.status !== 'escalated') {
+    if (state.editing) {
+      aiSection = `<div class="ai-box"><div class="ai-label">AI draft (editing)</div><textarea class="edit-area" id="edit-${ticket.id}">${state.aiResponse}</textarea></div>`;
+    } else {
+      aiSection = `<div class="ai-box"><div class="ai-label">AI suggested response</div><div class="ai-response">${state.aiResponse}</div></div>`;
+    }
+  }
+
+  let actionButtons = '';
+  if (state.status === 'pending' && !state.aiResponse) {
+    actionButtons = `<button class="btn btn-primary" onclick="generateResponse('${ticket.id}')">Generate AI Response</button><button class="btn btn-danger" onclick="escalate('${ticket.id}')">Escalate</button>`;
+  } else if (state.aiResponse && state.status !== 'resolved' && state.status !== 'escalated') {
+    if (state.editing) {
+      actionButtons = `<button class="btn btn-success" onclick="saveEdit('${ticket.id}')">Save & Send</button><button class="btn" onclick="cancelEdit('${ticket.id}')">Cancel</button>`;
+    } else {
+      actionButtons = `<button class="btn btn-success" onclick="approve('${ticket.id}')">Approve & Send</button><button class="btn" onclick="startEdit('${ticket.id}')">Edit</button><button class="btn btn-danger" onclick="escalate('${ticket.id}')">Escalate</button>`;
+    }
+  } else if (state.status === 'resolved') {
+    actionButtons = `<span style="font-size:12px;color:var(--text-success)">Response sent successfully</span>`;
+  } else if (state.status === 'escalated') {
+    actionButtons = `<span style="font-size:12px;color:var(--text-danger)">Escalated to human agent</span>`;
+  }
+
+  return `<div class="ticket" id="card-${ticket.id}">
+    <div class="ticket-header"><div>
+      <div class="ticket-meta"><span class="ticket-id">${ticket.id}</span><span class="priority ${priorityClass[ticket.priority]}">${ticket.priority}</span><span class="status-chip ${statusClass[state.status]}">${statusLabel[state.status]}</span></div>
+      <div class="ticket-subject">${ticket.subject}</div>
+      <div class="ticket-customer">${ticket.customer}</div>
+    </div></div>
+    <div class="ticket-body">${ticket.body}</div>
+    <div class="divider"></div>
+    ${aiSection}
+    <div class="actions">${actionButtons}</div>
+  </div>`;
+}
+
+function renderAll() {
+  document.getElementById('ticket-list').innerHTML = TICKETS.map(t => renderTicket(t)).join('');
+  updateMetrics();
+}
+
+async function generateResponse(id) {
+  const ticket = TICKETS.find(t => t.id === id);
+  ticketStates[id] = { status: 'generating', aiResponse: null };
+  renderAll();
+  const start = Date.now();
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: `You are AutoSupport AI, a professional customer support agent. Use the knowledge base below to craft a helpful, empathetic, concise support response. Sign off as "AutoSupport AI Team". Respond ONLY with the reply message.\n\nKnowledge Base:\n${KB}`,
+        messages: [{ role: 'user', content: `Ticket ID: ${ticket.id}\nCustomer: ${ticket.customer}\nSubject: ${ticket.subject}\nMessage: ${ticket.body}\n\nWrite a professional response to resolve this ticket.` }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.find(b => b.type === 'text')?.text || 'Unable to generate response.';
+    stats.times.push(Math.round((Date.now() - start) / 1000));
+    ticketStates[id] = { status: 'draft', aiResponse: text, editing: false };
+  } catch(e) {
+    ticketStates[id] = { status: 'pending', aiResponse: null };
+    showToast('Error contacting AI — please retry.');
+  }
+  renderAll();
+}
+
+function approve(id) { ticketStates[id].status = 'resolved'; stats.resolved++; renderAll(); showToast('Response sent to customer!'); }
+function startEdit(id) { ticketStates[id].editing = true; renderAll(); }
+function cancelEdit(id) { ticketStates[id].editing = false; renderAll(); }
+function saveEdit(id) {
+  const val = document.getElementById('edit-' + id)?.value;
+  if (val) ticketStates[id].aiResponse = val;
+  ticketStates[id].editing = false;
+  ticketStates[id].status = 'resolved';
+  stats.resolved++;
+  renderAll();
+  showToast('Edited response sent!');
+}
+function escalate(id) { ticketStates[id] = { status: 'escalated', aiResponse: null }; stats.escalated++; renderAll(); showToast('Ticket escalated to human agent.'); }
+
+renderAll();
+</script>
+</body>
+</html>
