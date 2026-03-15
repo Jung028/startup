@@ -12,6 +12,8 @@ interface User {
 interface AuthState {
   token: string | null;
   user: User | null;
+  setToken: (token: string) => void;
+  setUser: (user: User) => void;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
@@ -21,6 +23,11 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       token: null,
       user: null,
+      setToken: (token) => {
+        set({ token });
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      },
+      setUser: (user) => set({ user }),
       login: async (email, password) => {
         const { data } = await axios.post('/api/auth/login', { email, password });
         set({ token: data.token, user: data.user });
@@ -35,8 +42,10 @@ export const useAuthStore = create<AuthState>()(
   )
 );
 
-// Initialize axios auth header from persisted token
-const stored = JSON.parse(localStorage.getItem('aecsa-auth') || '{}');
-if (stored?.state?.token) {
-  axios.defaults.headers.common['Authorization'] = `Bearer ${stored.state.token}`;
-}
+// Re-hydrate axios header on app load from persisted storage
+try {
+  const stored = JSON.parse(localStorage.getItem('aecsa-auth') || '{}');
+  if (stored?.state?.token) {
+    axios.defaults.headers.common['Authorization'] = `Bearer ${stored.state.token}`;
+  }
+} catch { /* ignore */ }

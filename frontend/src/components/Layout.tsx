@@ -1,11 +1,12 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Ticket, BarChart3, BookOpen, LogOut, Bot, Bell } from 'lucide-react';
+import { LayoutDashboard, Ticket, BarChart3, BookOpen, LogOut, Bot, Bell, InboxIcon } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 import clsx from 'clsx';
 
 const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/tickets', icon: Ticket, label: 'Ticket Queue' },
+  { to: '/tickets', icon: Ticket, label: 'All Tickets' },
+  { to: '/review', icon: InboxIcon, label: 'Review Queue' },
   { to: '/analytics', icon: BarChart3, label: 'Analytics' },
   { to: '/knowledge-base', icon: BookOpen, label: 'Knowledge Base' },
 ];

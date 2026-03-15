@@ -4,6 +4,7 @@ import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import TicketQueue from './pages/TicketQueue';
 import TicketDetail from './pages/TicketDetail';
+import TicketReview from './pages/TicketReview';
 import Analytics from './pages/Analytics';
 import Login from './pages/Login';
 import KnowledgeBase from './pages/KnowledgeBase';
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="tickets" element={<TicketQueue />} />
         <Route path="tickets/:id" element={<TicketDetail />} />
+        <Route path="review" element={<TicketReview />} />
         <Route path="analytics" element={<Analytics />} />
         <Route path="knowledge-base" element={<KnowledgeBase />} />
       </Route>

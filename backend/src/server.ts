@@ -9,6 +9,7 @@ import { ticketRouter } from './api/tickets';
 import { analyticsRouter } from './api/analytics';
 import { usersRouter } from './api/users';
 import { crmRouter } from './api/crm';
+import { knowledgeBaseRouter } from './api/knowledgeBase';
 import { authMiddleware } from './auth/authMiddleware';
 import { errorHandler } from './middleware/errorHandler';
 import { initializeQueue } from './queues/ticketProcessor';
@@ -46,6 +47,7 @@ app.use('/api/auth', usersRouter);
 app.use('/api/tickets', authMiddleware, ticketRouter);
 app.use('/api/analytics', authMiddleware, analyticsRouter);
 app.use('/api/crm', authMiddleware, crmRouter);
+app.use('/api/knowledge-base', authMiddleware, knowledgeBaseRouter);
 
 // Error handling
 app.use(errorHandler);
