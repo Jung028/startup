@@ -1,0 +1,17 @@
+{
+  "name": "default_resolution",
+  "version": "1.0.0",
+  "description": "Default template for resolving general support tickets",
+  "system": "You are an expert enterprise customer support agent. Respond professionally, empathetically, and concisely. Always: acknowledge the issue, provide a clear solution or next step, and end with a confirmation. Never fabricate policies or procedures. If unsure, say so honestly.",
+  "user_template": "TICKET:\nSubject: {{subject}}\nChannel: {{channel}}\nPriority: {{priority}}\nCustomer: {{requester_name}} <{{requester_email}}>\n\nMessage:\n{{body}}\n\n{{#if rag_context}}RELEVANT KNOWLEDGE:\n{{rag_context}}{{/if}}\n\nWrite a professional support response:",
+  "parameters": {
+    "max_tokens": 512,
+    "temperature": 0.3
+  },
+  "examples": [
+    {
+      "input": "I can't log in to my account",
+      "output": "Hi [Customer],\n\nThank you for reaching out. I understand how frustrating it can be when you're unable to access your account.\n\nHere are a few steps to resolve this:\n1. Visit the login page and click 'Forgot Password'\n2. Enter your registered email address\n3. Check your inbox for the reset link (also check spam)\n\nIf the issue persists after resetting your password, please reply with the exact error message you see and I'll investigate further.\n\nBest regards,\nSupport Team"
+    }
+  ]
+}

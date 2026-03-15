@@ -1,0 +1,145 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aecsa-backend
+  namespace: aecsa
+  labels:
+    app: aecsa-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: aecsa-backend
+  template:
+    metadata:
+      labels:
+        app: aecsa-backend
+    spec:
+      containers:
+        - name: backend
+          image: aecsa/backend:latest
+          ports:
+            - containerPort: 3001
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: aecsa-secrets
+                  key: database-url
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: aecsa-secrets
+                  key: redis-url
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: aecsa-secrets
+                  key: jwt-secret
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aecsa-secrets
+                  key: anthropic-api-key
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 30
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aecsa-backend-svc
+  namespace: aecsa
+spec:
+  selector:
+    app: aecsa-backend
+  ports:
+    - protocol: TCP
+      port: 3001
+      targetPort: 3001
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aecsa-frontend
+  namespace: aecsa
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: aecsa-frontend
+  template:
+    metadata:
+      labels:
+        app: aecsa-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: aecsa/frontend:latest
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aecsa-frontend-svc
+  namespace: aecsa
+spec:
+  selector:
+    app: aecsa-frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: aecsa-ingress
+  namespace: aecsa
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: app.aecsa.io
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: aecsa-backend-svc
+                port:
+                  number: 3001
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: aecsa-frontend-svc
+                port:
+                  number: 80
